@@ -1,0 +1,769 @@
+openapi: 3.0.4
+info:
+  title: OmniStore POS API
+  description: Backend API specification for the OmniStore Grocery Management System.
+  version: 1.0.0
+servers:
+  - url: https://api.omnistore.com/v1
+    description: Production Server
+  - url: http://localhost:3000/v1
+    description: Local Development Server
+
+paths:
+  # ----------------------------
+  # AUTHENTICATION
+  # ----------------------------
+  /auth/login:
+    post:
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pin:
+                  type: string
+                  example: "1234"
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # ----------------------------
+  # PRODUCTS & INVENTORY
+  # ----------------------------
+  /products:
+    get:
+      summary: List all products
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Filter by name or SKU
+        - in: query
+          name: category
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+    post:
+      summary: Create a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+  /products/{id}:
+    put:
+      summary: Update product details
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: Product updated
+
+  /products/{id}/stock:
+    patch:
+      summary: Adjust product stock level
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                adjustment:
+                  type: integer
+                  description: Positive to add, negative to remove
+                  example: -5
+      responses:
+        '200':
+          description: Stock updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+  /products/bulk-adjustment:
+    post:
+      summary: Bulk update stock for multiple products
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  productId:
+                    type: string
+                  adjustment:
+                    type: integer
+      responses:
+        '200':
+          description: Bulk update successful
+
+  # ----------------------------
+  # SALES & POS
+  # ----------------------------
+  /sales:
+    get:
+      summary: Get sales history
+      parameters:
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: List of sales
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sale'
+    post:
+      summary: Record a new sale (POS Transaction)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleInput'
+      responses:
+        '201':
+          description: Sale recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+
+  # ----------------------------
+  # CUSTOMERS
+  # ----------------------------
+  /customers:
+    get:
+      summary: List customers
+      responses:
+        '200':
+          description: Customer list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+    post:
+      summary: Create customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+      responses:
+        '201':
+          description: Customer created
+
+  # ----------------------------
+  # SUPPLY CHAIN
+  # ----------------------------
+  /suppliers:
+    get:
+      summary: List suppliers
+      responses:
+        '200':
+          description: Supplier list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Supplier'
+    post:
+      summary: Add supplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierInput'
+      responses:
+        '201':
+          description: Supplier added
+
+  # ----------------------------
+  # FINANCE
+  # ----------------------------
+  /finance/expenses:
+    get:
+      summary: List expenses
+      responses:
+        '200':
+          description: Expense history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Expense'
+    post:
+      summary: Record expense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpenseInput'
+      responses:
+        '201':
+          description: Expense recorded
+
+  # ----------------------------
+  # PARTNERS & CAPITAL
+  # ----------------------------
+  /partners:
+    get:
+      summary: List partners
+      responses:
+        '200':
+          description: Partner list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Partner'
+    post:
+      summary: Register new partner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerInput'
+      responses:
+        '201':
+          description: Partner created
+
+  /partners/{id}/transactions:
+    get:
+      summary: Get partner capital history
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PartnerTransaction'
+    post:
+      summary: Add capital transaction (Increase/Decrease)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerTransactionInput'
+      responses:
+        '201':
+          description: Transaction recorded
+
+  # ----------------------------
+  # ASSETS
+  # ----------------------------
+  /assets:
+    get:
+      summary: List assets
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Asset'
+    post:
+      summary: Register asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetInput'
+      responses:
+        '201':
+          description: Asset created
+
+  /assets/{id}:
+    put:
+      summary: Update asset status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [Active, Maintenance, Broken]
+      responses:
+        '200':
+          description: Asset updated
+
+  # ----------------------------
+  # USERS
+  # ----------------------------
+  /users:
+    get:
+      summary: List users
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      summary: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: User created
+
+  /users/{id}:
+    delete:
+      summary: Remove user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User deleted
+
+  # ----------------------------
+  # MARKETING (AI)
+  # ----------------------------
+  /marketing/campaigns:
+    get:
+      summary: List campaigns
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Campaign'
+    post:
+      summary: Save generated campaign
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Campaign'
+      responses:
+        '201':
+          description: Campaign saved
+
+  /marketing/generate:
+    post:
+      summary: Generate content via AI
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productName:
+                  type: string
+                discount:
+                  type: string
+                audience:
+                  type: string
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: string
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        price:
+          type: number
+        cost:
+          type: number
+        stock:
+          type: integer
+        sku:
+          type: string
+        supplierIds:
+          type: array
+          items:
+            type: string
+        lowStockThreshold:
+          type: integer
+        image:
+          type: string
+
+    ProductInput:
+      type: object
+      required: [name, price, sku]
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        price:
+          type: number
+        cost:
+          type: number
+        stock:
+          type: integer
+        sku:
+          type: string
+        supplierIds:
+          type: array
+          items:
+            type: string
+        lowStockThreshold:
+          type: integer
+        image:
+          type: string
+
+    Sale:
+      type: object
+      properties:
+        id:
+          type: string
+        items:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Product'
+              - type: object
+                properties:
+                  quantity:
+                    type: integer
+        total:
+          type: number
+        date:
+          type: string
+          format: date-time
+        cashierId:
+          type: string
+        paymentMethod:
+          type: string
+          enum: [CASH, CARD]
+
+    SaleInput:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+              quantity:
+                type: integer
+        paymentMethod:
+          type: string
+        customerId:
+          type: string
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        loyaltyPoints:
+          type: integer
+
+    CustomerInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+
+    Supplier:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        contact:
+          type: string
+        leadTime:
+          type: integer
+
+    SupplierInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        contact:
+          type: string
+        leadTime:
+          type: integer
+
+    Expense:
+      type: object
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        date:
+          type: string
+          format: date-time
+
+    ExpenseInput:
+      type: object
+      required: [description, amount]
+      properties:
+        description:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        date:
+          type: string
+          format: date
+
+    Partner:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        capital:
+          type: number
+        contact:
+          type: string
+        joinedDate:
+          type: string
+          format: date
+
+    PartnerInput:
+      type: object
+      required: [name, capital]
+      properties:
+        name:
+          type: string
+        capital:
+          type: number
+        contact:
+          type: string
+        joinedDate:
+          type: string
+
+    PartnerTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+        partnerId:
+          type: string
+        amount:
+          type: number
+        type:
+          type: string
+          enum: [DEPOSIT, WITHDRAWAL]
+        date:
+          type: string
+        proofImage:
+          type: string
+        notes:
+          type: string
+
+    PartnerTransactionInput:
+      type: object
+      required: [amount, type]
+      properties:
+        amount:
+          type: number
+        type:
+          type: string
+          enum: [DEPOSIT, WITHDRAWAL]
+        date:
+          type: string
+        proofImage:
+          type: string
+        notes:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [ADMIN, CASHIER, MANAGER]
+
+    UserInput:
+      type: object
+      required: [name, role, pin]
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+        pin:
+          type: string
+
+    Asset:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        value:
+          type: number
+        status:
+          type: string
+          enum: [Active, Maintenance, Broken]
+
+    AssetInput:
+      type: object
+      required: [name, value]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        value:
+          type: number
+        status:
+          type: string
+        purchaseDate:
+          type: string
+
+    Campaign:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        content:
+          type: string
+        status:
+          type: string
