@@ -1,11 +1,21 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { ProductsModule } from './products/products.module';
+import { ConfigModule } from '@nestjs/config';
+import { databaseConfig, appConfig, validationSchema } from './config';
+import {GeneratedApiModule} from './generated'
 
 @Module({
-  imports: [ProductsModule],
-  controllers: [AppController],
-  providers: [AppService]
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env.local', '.env'],
+      load: [databaseConfig, appConfig],
+      validationSchema,
+      validationOptions: {
+        allowUnknown: true,
+        abortEarly: false,
+      },
+    }),
+    GeneratedApiModule,
+  ]
 })
 export class AppModule {}
