@@ -11,26 +11,26 @@ export class PartnerEntity {
   /**
    * name
    */
-  @Column({ type: 'varchar', nullable: true })
-  name?: string;
+  @Column({ type: 'varchar', nullable: false })
+  name: string;
 
   /**
    * capital
    */
-  @Column({ type: 'decimal', nullable: true, precision: 10, scale: 2 })
-  capital?: number;
+  @Column({ type: 'decimal', nullable: false, precision: 10, scale: 2 })
+  capital: number;
 
   /**
    * contact
    */
-  @Column({ type: 'varchar', nullable: true })
-  contact?: string;
+  @Column({ type: 'varchar', nullable: false })
+  contact: string;
 
   /**
-   * joinedDate
+   * joinedDate - Date of joining
    */
-  @Column({ type: 'date', nullable: true })
-  joinedDate?: string;
+  @Column({ type: 'date', nullable: false })
+  joinedDate: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
