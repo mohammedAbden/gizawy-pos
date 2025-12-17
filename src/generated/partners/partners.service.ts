@@ -18,24 +18,34 @@ export class PartnersService {
    * List partners
    */
   async getPartners(): Promise<Partner[]> {
-    // TODO: Implement getPartners
-    // Example using repository:
-    // return this.repository.find();
-    // return this.repository.findOne({ where: { id } });
-    // return this.repository.save(data);
-    throw new Error('Method getPartners not implemented');
+    const partners = await this.repository.find();
+    return partners.map((partner) => ({
+      id: partner.id,
+      name: partner.name,
+      capital: Number(partner.capital),
+      contact: partner.contact,
+      joinedDate: partner.joinedDate,
+    }));
   }
 
   /**
    * Register new partner
    */
-  async postPartners(partnerInput: PartnerInput): Promise<any> {
-    // TODO: Implement postPartners
-    // Example using repository:
-    // return this.repository.find();
-    // return this.repository.findOne({ where: { id } });
-    // return this.repository.save(data);
-    throw new Error('Method postPartners not implemented');
+  async postPartners(partnerInput: PartnerInput): Promise<Partner> {
+    const partner = this.repository.create({
+      name: partnerInput.name,
+      capital: partnerInput.capital,
+      contact: partnerInput.contact,
+      joinedDate: partnerInput.joinedDate,
+    });
+    const savedPartner = await this.repository.save(partner);
+    return {
+      id: savedPartner.id,
+      name: savedPartner.name,
+      capital: Number(savedPartner.capital),
+      contact: savedPartner.contact,
+      joinedDate: savedPartner.joinedDate,
+    };
   }
 
   /**

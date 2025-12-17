@@ -25,17 +25,18 @@ export class PartnerInput {
   /**
    * contact
    */
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  contact?: string;
+  contact: string;
 
   /**
-   * joinedDate
+   * joinedDate - Date of joining
    */
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  joinedDate?: string;
+  @ApiProperty({ description: 'Date of joining' })
+  @IsNotEmpty()
+  @Type(() => Date)
+  @IsDate()
+  joinedDate: Date;
 
 }

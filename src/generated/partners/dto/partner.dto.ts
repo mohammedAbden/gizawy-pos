@@ -9,42 +9,42 @@ export class Partner {
   /**
    * id
    */
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  id?: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsUUID()
+  id: string;
 
   /**
    * name
    */
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  name?: string;
+  name: string;
 
   /**
    * capital
    */
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty()
+  @IsNotEmpty()
   @IsNumber()
-  capital?: number;
+  capital: number;
 
   /**
    * contact
    */
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  contact?: string;
+  contact: string;
 
   /**
-   * joinedDate
+   * joinedDate - Date of joining
    */
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
+  @ApiProperty({ description: 'Date of joining' })
+  @IsNotEmpty()
   @Type(() => Date)
-  joinedDate?: string;
+  @IsDate()
+  joinedDate: Date;
 
 }
